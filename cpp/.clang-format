@@ -7,4 +7,4 @@ AllowShortIfStatementOnASingleLine: false
 IndentCaseLabels: false
 ColumnLimit: 100
 AccessModifierOffset: -4
-FixNamespaceComments: False
+FixNamespaceComments: false
