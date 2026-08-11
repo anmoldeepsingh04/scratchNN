@@ -84,8 +84,8 @@ X_test = X_test.reshape(X_test.shape[0], 784)
 train_data = np.column_stack((y_train, X_train))
 test_data = np.column_stack((y_test, X_test))
 
-print("Training truth shape: ", train_data.shape)
-print("Testing truth shape: ", test_data.shape)
+# print("Training truth shape: ", train_data.shape)
+# print("Testing truth shape: ", test_data.shape)
 
 
 # Saving as CSV files
