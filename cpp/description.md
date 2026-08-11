@@ -1,0 +1,2 @@
+We perform a classification task for MNIST and FashionMNIST by coding all the required functionalities in C++, as even the DL libraries used in Python, are basically written in C++ for faster and efficient execution. 
+We will only be using the standard libraries in C++.

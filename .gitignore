@@ -3,6 +3,10 @@ py/data/
 py/data/mnist_train.csv
 py/data/mnist_test.csv
 
+cpp/data/
+cpp/data/mnist_train.csv
+cpp/data/mnist_test.csv
+
 # Python cache
 __pycache__/
 *.pyc
