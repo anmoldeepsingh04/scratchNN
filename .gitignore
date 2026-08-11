@@ -2,7 +2,6 @@
 py/data/
 py/data/mnist_train.csv
 py/data/mnist_test.csv
-
 cpp/data/
 cpp/data/mnist_train.csv
 cpp/data/mnist_test.csv
@@ -15,6 +14,9 @@ __pycache__/
 .venv/
 venv/
 env/
+
+# cpp build files
+cpp/build/*
 
 # Jupyter
 .ipynb_checkpoints/
