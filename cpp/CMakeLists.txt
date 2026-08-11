@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(neural_cpp)
+project(cpp)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -34,10 +34,10 @@ add_executable(neural_cpp src/main.cpp)
 target_link_libraries(neural_cpp PRIVATE neural_core)
 
 # tests
-file(GLOB TEST_SOURCES "tests/*cpp")
+file(GLOB TEST_SOURCES "tests/*.cpp")
 add_executable(run_tests ${TEST_SOURCES})
 target_link_libraries(run_tests PRIVATE neural_core gtest gtest_main)
 
 # register tests
-inclue(GoogleTest)
+include(GoogleTest)
 gtest_discover_tests(run_tests)
