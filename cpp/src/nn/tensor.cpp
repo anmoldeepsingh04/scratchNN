@@ -36,6 +36,17 @@ const float &Tensor::item() const{
     }
 }
 
+float &Tensor::item(){
+    if(_data.size() == 1){
+        return _data[0];
+    }
+    else{
+        throw std::runtime_error(
+            "item() can only be called on tensors with a single element"
+        );
+    }
+}
+
 // implementing functionalities for 1D and 2D accessors
 // 1D tensor
 const float &Tensor::operator()(std::size_t i) const {
@@ -54,6 +65,30 @@ const float &Tensor::operator()(std::size_t i) const {
     throw std::invalid_argument("This is a 1D tensor. Use two indices for 2D tensors.");
 }
 
+float &Tensor::operator()(std::size_t i) {
+    if (_shape.size() == 0){
+        throw std::invalid_argument(
+            "Can't index into a scalar. Use item() instead"
+        );
+    }
+
+    if (_shape.size() == 1){
+        if (i >= _shape[0]){
+            throw std::invalid_argument(
+                "Index " + std::to_string(i) +
+                " is out of bounds for array of size " +
+                std::to_string(_shape[0])
+            );
+        }
+
+        return _data[i];
+    }
+
+    throw std::invalid_argument(
+        "This is a 1D tensor. Use two indices for 2D tensors."
+    );
+}
+
 // 2D tensor: we have to map the row index i and column index j into an index for our linear representation, which is done using the stride variable which decides how many elements do we have to move to get to the next element in a certain dimension.
 const float &Tensor::operator()(std::size_t i, std::size_t j) const {
     // checking if we're not accessing any out of bounds element
@@ -68,6 +103,32 @@ const float &Tensor::operator()(std::size_t i, std::size_t j) const {
     }
     // throwing error if the tensor is not 2D
     throw std::invalid_argument("Can only double index into 2D tensors.");
+}
+
+float &Tensor::operator()(std::size_t i, std::size_t j) {
+    if (_shape.size() == 2){
+        if (i >= _shape[0]){
+            throw std::invalid_argument(
+                "Row index " + std::to_string(i) +
+                " is out of bounds for tensor with " +
+                std::to_string(_shape[0]) + " rows"
+            );
+        }
+
+        if (j >= _shape[1]){
+            throw std::invalid_argument(
+                "Column index " + std::to_string(j) +
+                " is out of bounds for tensor with " +
+                std::to_string(_shape[1]) + " columns"
+            );
+        }
+
+        return _data[i * _stride[0] + j * _stride[1]];
+    }
+
+    throw std::invalid_argument(
+        "Can only double index into 2D tensors."
+    );
 }
 
 // methods to view the stride and shape of tensor
