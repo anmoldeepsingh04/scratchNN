@@ -23,7 +23,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 # main application sources excluding main.cpp
-file(GLOB_RECURSE SOURCES "src/**/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 list(FILTER SOURCES EXCLUDE REGEX ".*main\\.cpp$")
 
 # create a library with core functionality

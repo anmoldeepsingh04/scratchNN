@@ -70,6 +70,10 @@ const float &Tensor::operator()(std::size_t i, std::size_t j) const {
     throw std::invalid_argument("Can only double index into 2D tensors.");
 }
 
+// methods to view the stride and shape of tensor
+const std::vector<std::size_t> &Tensor::shape() const {return _shape;}
+const std::vector<std::size_t> &Tensor::stride() const {return _stride;}
+
 // constructing a tensor: defining a custom visualization method to see the data
 std::ostream &operator<<(std::ostream &os, const Tensor &obj){
     std::string string_repr = "[";
@@ -84,5 +88,24 @@ std::ostream &operator<<(std::ostream &os, const Tensor &obj){
                 string_repr += ", ";
             }
         }
+        string_repr += "]";
     }
+    else{
+        for(std::size_t i = 0; i < obj.shape()[0]; i++){
+            string_repr += "[";
+            for(std::size_t j = 0; j < obj.shape()[1]; j++){
+                string_repr += std::to_string(obj(i,j));
+                if (j != obj.shape()[1] - 1){
+                    string_repr += ", ";
+                }
+            }
+            string_repr += "]";
+            if(i != obj.shape()[0] - 1){
+                string_repr += ", ";
+            }
+        }
+        string_repr += "]";
+    }
+    os << string_repr;
+    return os;
 }
