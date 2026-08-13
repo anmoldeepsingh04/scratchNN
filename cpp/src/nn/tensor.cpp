@@ -170,3 +170,30 @@ std::ostream &operator<<(std::ostream &os, const Tensor &obj){
     os << string_repr;
     return os;
 }
+
+// implementing the overloaded + and * operator for tensors
+std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
+    // 0D + 0D
+    if(_shape.size() == 0 && other -> shape().size() == 0){
+        float result = item() + other -> item();
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 0D + 1D
+    if(_shape.size() == 0 && other -> shape().size() == 1){
+        std::vector<float> result;
+        for(std::size_t i = 0; i < other -> shape()[0]; i++){
+            result.push_back(item() + ((*other)(i)));
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 0D + 2D
+    if(_shape.size() == 0 && other -> shape().size() == 2){
+        std::vector<float> result;
+        for(std::size_t i = 0; i < other -> shape()[0]; i++){
+            result.push_back(item() + ((*other)(i)));
+        }
+        return std::make_shared<Tensor>(result);
+    }
+}

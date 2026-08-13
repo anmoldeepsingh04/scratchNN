@@ -24,7 +24,15 @@ class Tensor{
         const float &operator() (std::size_t i, std::size_t j) const;
         float &operator() (std::size_t i, std::size_t j);
 
+        // method to get the shape and stride
         const std::vector<std::size_t> &shape() const;
         const std::vector<std::size_t> &stride() const;
+
+        // overloading the << operator to print data on the terminal
         friend std::ostream &operator<<(std::ostream &os, const Tensor &obj);
+
+        // defining the only two operations required to train a neural network. We will overload the + and * operators
+        // we will use a shared_ptr to overwrite the operators, which manages memory smartly and it is stored on the heap which is needed because to implement auto-differentiation we will use computational graphs where each tensor needs the pointers to the tensors that were used to create it
+        std::shared_ptr<Tensor> operator+(std::shared_ptr<Tensor> other);
+        std::shared_ptr<Tensor> operator*(std::shared_ptr<Tensor> other);
 };
