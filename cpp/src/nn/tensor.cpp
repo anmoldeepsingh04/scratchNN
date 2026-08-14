@@ -171,7 +171,7 @@ std::ostream &operator<<(std::ostream &os, const Tensor &obj){
     return os;
 }
 
-// implementing the overloaded + and * operator for tensors
+// implementing the overloaded + operator for tensors
 std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
     // 0D + 0D
     if(_shape.size() == 0 && other -> shape().size() == 0){
@@ -244,7 +244,7 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
     // checking if both second dimensions are equal
     else{
         if(shape()[1] != other -> shape()[1]){
-        throw std::invalid_argument("Second dimensions are not equal.");
+            throw std::invalid_argument("Second dimensions are not equal.");
         }
 
         // adding both 2D tensors
@@ -253,6 +253,74 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
             std::vector<float> result_i;
             for(std::size_t j = 0; j < shape()[1]; j++){
                 result_i.push_back(operator()(i, j) + (*other)(i, j));
+            }
+            result.push_back(result_i);
+        }
+        return std::make_shared<Tensor>(result);
+    }
+}
+
+// implementing the overloaded * operator for tensors: Pytorch has * for elementwise multiplication and @ for matrix multiplication, but since @ is not really an operator in c++, we will overload the * operator
+std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
+    // matmul is not defined for two scalars, so check for that
+    if(_shape.size() == 0 || other -> shape().size() == 0){
+        throw std::invalid_argument("Both arguments need to be atleast 1D for matrix multiplication.");
+    }
+
+    // checking if the #columns of first tensor is equal to #rows of second tensor
+    if(_shape[_shape.size() - 1] != other -> shape()[0]){
+        throw std::invalid_argument("Number of columns of first tensor is not equal to number of rows of second tensor.");
+    }
+
+    // 1D x 1D -> 0D
+    if(_shape.size() == 1 && other -> shape().size() == 1){
+        float result = 0.0;
+        for(std::size_t i = 0; i < _shape[0]; i++){
+            result += operator()(i) * (*other)(i);
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 2D x 1D -> 1D
+    else if(_shape.size() == 2 && other -> shape().size() == 1){
+        std::vector<float> result;
+        for(std::size_t i = 0; i < _shape[0]; i++){
+            float result_i = 0.0;
+            for (std::size_t j = 0; j < _shape[1]; j++){
+                result_i += operator()(i, j) * (*other)(j);
+            }
+            result.push_back(result_i);
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 1D x 2D -> 1D
+    else if(_shape.size() == 1 && other -> shape().size() == 2){
+        std::vector<float> result;
+        for(std::size_t i = 0; i < other -> shape()[1]; i++){
+            float result_i = 0.0;
+            for (std::size_t j = 0; j < other -> shape()[0]; j++){
+                result_i += operator()(j) * (*other)(i, j);
+            }
+            result.push_back(result_i);
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 2D x 2D -> 2D
+    else{
+        if(other -> shape().size() < 2){
+            throw std::invalid_argument("Expected second tensor to have at least two dimensions for matrix multiplication.");
+        }
+        std::vector<std::vector<float>> result;
+        for(std::size_t i = 0; i < shape()[0]; i++){
+            std::vector<float> result_i;
+            for(std::size_t j = 0; j < other -> shape()[1]; j++){
+                float result_i_j = 0.0;
+                for(std::size_t k = 0; k < shape()[1]; k++){
+                    result_i_j += operator()(i, k) * (*other)(k ,j);
+                }
+                result_i.push_back(result_i_j);
             }
             result.push_back(result_i);
         }
