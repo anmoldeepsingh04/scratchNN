@@ -183,16 +183,78 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
     if(_shape.size() == 0 && other -> shape().size() == 1){
         std::vector<float> result;
         for(std::size_t i = 0; i < other -> shape()[0]; i++){
-            result.push_back(item() + ((*other)(i)));
+            result.push_back(item() + (*other)(i));
         }
         return std::make_shared<Tensor>(result);
     }
 
     // 0D + 2D
     if(_shape.size() == 0 && other -> shape().size() == 2){
-        std::vector<float> result;
+        std::vector<std::vector<float>> result;
         for(std::size_t i = 0; i < other -> shape()[0]; i++){
-            result.push_back(item() + ((*other)(i)));
+            std::vector<float> result_i;
+            
+            for (std::size_t j = 0; j < other -> shape()[1]; j++){
+                result_i.push_back(item() + (*other)(i,j));
+            }
+            result.push_back(result_i);
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 1D + 0D
+    if(_shape.size() == 1 && other -> shape().size() == 0){
+        std::vector<float> result;
+        for(std::size_t i = 0; i < shape()[0]; i++){
+            result.push_back(operator()(i) + other -> item());
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 2D + 0D
+    if(_shape.size() == 2 && other -> shape().size() == 0){
+        std::vector<std::vector<float>> result;
+        for(std::size_t i = 0; i < shape()[0]; i++){
+            std::vector<float> result_i;
+            
+            for (std::size_t j = 0; j < shape()[1]; j++){
+                result_i.push_back(operator()(i, j) + other -> item());
+            }
+            result.push_back(result_i);
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 1D + 1D
+    // checking if both dimensions are equal
+    if(_shape[0] != other -> shape()[0]){
+        throw std::invalid_argument("First dimensions are not equal.");
+    }
+
+    // adding both 1D tensors
+    if(_shape.size() == 1){
+        std::vector<float> result;
+        for(std::size_t i = 0; i < shape()[0]; i++){
+            result.push_back(operator()(i) + (*other)(i));
+        }
+        return std::make_shared<Tensor>(result);
+    }
+
+    // 2D + 2D
+    // checking if both second dimensions are equal
+    else{
+        if(shape()[1] != other -> shape()[1]){
+        throw std::invalid_argument("Second dimensions are not equal.");
+        }
+
+        // adding both 2D tensors
+        std::vector<std::vector<float>> result;
+        for(std::size_t i = 0; i < shape()[0]; i++){
+            std::vector<float> result_i;
+            for(std::size_t j = 0; j < shape()[1]; j++){
+                result_i.push_back(operator()(i, j) + (*other)(i, j));
+            }
+            result.push_back(result_i);
         }
         return std::make_shared<Tensor>(result);
     }
