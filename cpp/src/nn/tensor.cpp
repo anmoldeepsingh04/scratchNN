@@ -300,7 +300,7 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
         for(std::size_t i = 0; i < other -> shape()[1]; i++){
             float result_i = 0.0;
             for (std::size_t j = 0; j < other -> shape()[0]; j++){
-                result_i += operator()(j) * (*other)(i, j);
+                result_i += operator()(j) * (*other)(j, i);
             }
             result.push_back(result_i);
         }
