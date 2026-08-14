@@ -37,3 +37,73 @@ TEST(TensorTest, Creation){
     EXPECT_THROW(tensor2.item(), std::runtime_error);
 }
 
+TEST(TensorTest, Addition){
+    // 0D + 0D
+    std::shared_ptr<Tensor> tensor1 = std::make_shared<Tensor>(1.0);
+    std::shared_ptr<Tensor> tensor2 = std::make_shared<Tensor>(2.0);
+    std::shared_ptr<Tensor> tensor3 = (*tensor1) + (tensor2);
+    EXPECT_EQ(tensor3 -> item(), 3.0);
+
+    // 0D + 1D
+    std::shared_ptr<Tensor> tensor4 = std::make_shared<Tensor>(1.0);
+    std::shared_ptr<Tensor> tensor5 = std::make_shared<Tensor>(std::vector<float>({2.0, 3.0, 4.0}));
+    std::shared_ptr<Tensor> tensor6 = (*tensor4) + (tensor5);
+    EXPECT_EQ(tensor6 -> shape(), std::vector<std::size_t>({3}));
+    EXPECT_EQ((*tensor6)(0), 3.0);
+    EXPECT_EQ((*tensor6)(1), 4.0);
+    EXPECT_EQ((*tensor6)(2), 5.0);
+
+    // 1D + 0D
+    std::shared_ptr<Tensor> tensor7 = std::make_shared<Tensor>(std::vector<float>({2.0, 3.0, 4.0}));
+    std::shared_ptr<Tensor> tensor8 = std::make_shared<Tensor>(1.0);
+    std::shared_ptr<Tensor> tensor9 = (*tensor7) + (tensor8);
+    EXPECT_EQ(tensor9 -> shape(), std::vector<std::size_t>({3}));
+    EXPECT_EQ((*tensor9)(0), 3.0);
+    EXPECT_EQ((*tensor9)(1), 4.0);
+    EXPECT_EQ((*tensor9)(2), 5.0);
+
+    // 1D + 1D
+    std::shared_ptr<Tensor> tensor10 = std::make_shared<Tensor>(std::vector<float>({1.0, 2.0, 3.0}));
+    std::shared_ptr<Tensor> tensor11 = std::make_shared<Tensor>(std::vector<float>({4.0, 5.0, 6.0}));
+    std::shared_ptr<Tensor> tensor12 = (*tensor10) + (tensor11);
+    EXPECT_EQ(tensor12 -> shape(), std::vector<std::size_t>({3}));
+    EXPECT_EQ((*tensor12)(0), 5.0);
+    EXPECT_EQ((*tensor12)(1), 7.0);
+    EXPECT_EQ((*tensor12)(2), 9.0);
+
+    // 2D + 2D
+    std::shared_ptr<Tensor> tensor13 = std::make_shared<Tensor>(std::vector<std::vector<float>>({{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}));
+    std::shared_ptr<Tensor> tensor14 = std::make_shared<Tensor>(std::vector<std::vector<float>>({{7.0, 8.0, 9.0}, {10.0, 11.0, 12.0}}));
+    std::shared_ptr<Tensor> tensor15 = (*tensor13) + (tensor14);
+    EXPECT_EQ(tensor15 -> shape(), std::vector<std::size_t>({2, 3}));
+    EXPECT_EQ((*tensor15)(0, 0), 8.0);
+    EXPECT_EQ((*tensor15)(0, 1), 10.0);
+    EXPECT_EQ((*tensor15)(0, 2), 12.0);
+    EXPECT_EQ((*tensor15)(1, 0), 14.0);
+    EXPECT_EQ((*tensor15)(1, 1), 16.0);
+    EXPECT_EQ((*tensor15)(1, 2), 18.0);
+
+    // 2D + 0D
+    std::shared_ptr<Tensor> tensor16 = std::make_shared<Tensor>(std::vector<std::vector<float>>({{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}));
+    std::shared_ptr<Tensor> tensor17 = std::make_shared<Tensor>(7.0);
+    std::shared_ptr<Tensor> tensor18 = (*tensor16) + (tensor17);
+    EXPECT_EQ(tensor18 -> shape(), std::vector<std::size_t>({2, 3}));
+    EXPECT_EQ((*tensor18)(0, 0), 8.0);
+    EXPECT_EQ((*tensor18)(0, 1), 9.0);
+    EXPECT_EQ((*tensor18)(0, 2), 10.0);
+    EXPECT_EQ((*tensor18)(1, 0), 11.0);
+    EXPECT_EQ((*tensor18)(1, 1), 12.0);
+    EXPECT_EQ((*tensor18)(1, 2), 13.0);
+
+    // 0D + 2D
+    std::shared_ptr<Tensor> tensor19 = std::make_shared<Tensor>(7.0);
+    std::shared_ptr<Tensor> tensor20 = std::make_shared<Tensor>(std::vector<std::vector<float>>({{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}));
+    std::shared_ptr<Tensor> tensor21 = (*tensor19) + (tensor20);
+    EXPECT_EQ(tensor21 -> shape(), std::vector<std::size_t>({2, 3}));
+    EXPECT_EQ((*tensor21)(0, 0), 8.0);
+    EXPECT_EQ((*tensor21)(0, 1), 9.0);
+    EXPECT_EQ((*tensor21)(0, 2), 10.0);
+    EXPECT_EQ((*tensor21)(1, 0), 11.0);
+    EXPECT_EQ((*tensor21)(1, 1), 12.0);
+    EXPECT_EQ((*tensor21)(1, 2), 13.0);
+}
