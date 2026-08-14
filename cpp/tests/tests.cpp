@@ -106,4 +106,5 @@ TEST(TensorTest, Addition){
     EXPECT_EQ((*tensor21)(1, 0), 11.0);
     EXPECT_EQ((*tensor21)(1, 1), 12.0);
     EXPECT_EQ((*tensor21)(1, 2), 13.0);
+    // new trial
 }
