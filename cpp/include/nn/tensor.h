@@ -5,16 +5,26 @@
 #include <string>
 #include <vector>
 
-class Tensor{
+class Tensor : public std::enable_shared_from_this<Tensor>{
     private:
         std::vector<float> _data;
         std::vector<std::size_t> _shape;
         std::vector<std::size_t> _stride;
+        std::vector<float> _grad;
+        std::function<void(const std::vector<float>&)> _gradfn;
+        std::vector<std::shared_ptr<Tensor>> _parents;
+        bool _requires_grad;
 
     public:
-        Tensor(float data); // scalar value
-        Tensor(std::vector<float> data); // 1D tensor == a vector
-        Tensor(std::vector<std::vector<float>> data); // 2D tensor == a matrix
+        Tensor(float data, bool requires_grad = false,
+               std::function<void(const std::vector<float>&)> gradfn = nullptr,
+               std::vector<std::shared_ptr<Tensor>> parents = {}); // scalar value
+        Tensor(std::vector<float> data, bool requires_grad = false,
+               std::function<void(const std::vector<float>&)> gradfn = nullptr,
+               std::vector<std::shared_ptr<Tensor>> parents = {}); // 1D tensor == a vector
+        Tensor(std::vector<std::vector<float>> data, bool requires_grad = false,
+               std::function<void(const std::vector<float>&)> gradfn = nullptr,
+               std::vector<std::shared_ptr<Tensor>> parents = {}); // 2D tensor == a matrix
         const float &item() const; // a read variant which returns a constant
         float &item(); // a write variant which allows us to modify the values stored in the tensor
 

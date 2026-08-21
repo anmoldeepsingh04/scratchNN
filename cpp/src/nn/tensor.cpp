@@ -3,10 +3,29 @@
 #include <string>
 #include <vector>
 
-Tensor::Tensor(float data): _data{data}, _shape{}, _stride{} {};
-Tensor::Tensor(std::vector<float> data): _data{data}, _shape{data.size()}, _stride{1} {};
+Tensor::Tensor(float data, bool requires_grad,
+                std::function<void(const std::vector<float>& )> gradfn,
+                std::vector<std::shared_ptr<Tensor>> parents): _data{data}, _shape{}, _stride{}, _requires_grad(requires_grad), _gradfn(gradfn,
+                _parents(parents)) {
+                    if(_requires_grad){
+                        zero_grad();
+                    }
+                }
+Tensor::Tensor(std::vector<float> data, bool requires_grad,
+                std::function<void(const std::vector<float>&)> gradfn,
+                std::vector<std::sharedptr<Tensor>> parents): _data{data},
+                _shape{data.size()}, _stride{1}, _requires_grad(requires_grad), _gradfn(gradfn),
+                _parents(parents){
+                    if(_requires_grad){
+                        zero_grad();
+                    }
+                }
 // here we can't directly assign the data directly as our data member is private. We will flatten the multidimensional input to a single dimension using row/column major ordering. PyTorch is row-major by default, and we will do the same
-Tensor::Tensor(std::vector<std::vector<float>> data): _shape{data.size(), data[0].size()}, _stride{data[0].size(), 1} {
+Tensor::Tensor(std::vector<std::vector<float>> data, bool requires_grad,
+                std::function<void(const std::vector<float>&)> gradfn,
+                std::vector<std::sharedptr<Tensor>> parents):
+                _shape{data.size(), data[0].size()}, _stride{data[0].size(), 1}, _requires_grad(requires_grad), _gradfn(gradfn),
+                _parents(parents){
 
 // check if dimensions match, #rows == #cols
     std::size_t n_expected_columns = data[0].size();
@@ -22,6 +41,9 @@ Tensor::Tensor(std::vector<std::vector<float>> data): _shape{data.size(), data[0
         for(std::size_t j = 0; j < data[i].size(); j++){
             _data.push_back(data[i][j]);
         }
+    }
+    if(_requires_grad){
+        zero_grad();
     }
 }
 
@@ -134,6 +156,28 @@ float &Tensor::operator()(std::size_t i, std::size_t j) {
 // methods to view the stride and shape of tensor
 const std::vector<std::size_t> &Tensor::shape() const {return _shape;}
 const std::vector<std::size_t> &Tensor::stride() const {return _stride;}
+
+// method to see if _requirs_grad variable is true
+const bool &Tensor::requires_grad() const{return _requirs_grad;}
+// method to get the grad variable which is storing the gradients
+const std::vector<float> &Tensor::grad() const {return _grad;}
+// method to add a gradient update to our current gradients
+void Tensor::add_to_grad(const std::vector<float>& grad_update){
+    if(!_requires_grad){
+        return;
+    }
+    if(_grad.size() != grad_update.size()){
+        throw std::runtime_error("Gradient shape mismatch during accumulation.");
+    }
+    for(std::size_t i = 0; i < grad.size(); i++){
+        _grad[i] += grad_update[i];
+    }
+}
+// method to initialize gradients to a vector of the same size as data we're storing
+void Tensor::zero_grad(){ _grad = std::vector<float>(_data.size(), 0.0f);}
+// numel method like pytorch that tells us how many elements we're storing in data
+std::size_t Tensor::numel() const{ return _data.size();}
+
 
 // constructing a tensor: defining a custom visualization method to see the data
 std::ostream &operator<<(std::ostream &os, const Tensor &obj){
