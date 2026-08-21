@@ -14,6 +14,7 @@ class Tensor : public std::enable_shared_from_this<Tensor>{
         std::function<void(const std::vector<float>&)> _gradfn;
         std::vector<std::shared_ptr<Tensor>> _parents;
         bool _requires_grad;
+        void _backward();
 
     public:
         Tensor(float data, bool requires_grad = false,
@@ -37,6 +38,13 @@ class Tensor : public std::enable_shared_from_this<Tensor>{
         // method to get the shape and stride
         const std::vector<std::size_t> &shape() const;
         const std::vector<std::size_t> &stride() const;
+        const bool &requires_grad() const;
+        const std::vector<float> &grad() const;
+        void add_to_grad(const std::vector<float> &grad_updates);
+        void zero_grad();
+        std::size_t numel() const;
+        std::vector<float> &data();
+        void backward();
 
         // overloading the << operator to print data on the terminal
         friend std::ostream &operator<<(std::ostream &os, const Tensor &obj);
@@ -45,4 +53,5 @@ class Tensor : public std::enable_shared_from_this<Tensor>{
         // we will use a shared_ptr to overwrite the operators, which manages memory smartly and it is stored on the heap which is needed because to implement auto-differentiation we will use computational graphs where each tensor needs the pointers to the tensors that were used to create it
         std::shared_ptr<Tensor> operator+(std::shared_ptr<Tensor> other);
         std::shared_ptr<Tensor> operator*(std::shared_ptr<Tensor> other);
+
 };
