@@ -5,8 +5,8 @@
 
 Tensor::Tensor(float data, bool requires_grad,
                 std::function<void(const std::vector<float>& )> gradfn,
-                std::vector<std::shared_ptr<Tensor>> parents): _data{data}, _shape{}, _stride{}, _requires_grad(requires_grad), _gradfn(gradfn,
-                _parents(parents)) {
+                std::vector<std::shared_ptr<Tensor>> parents): _data{data}, _shape{}, _stride{}, _requires_grad(requires_grad), _gradfn(gradfn),
+                _parents(parents) {
                     if(_requires_grad){
                         zero_grad();
                     }
@@ -23,11 +23,11 @@ Tensor::Tensor(std::vector<float> data, bool requires_grad,
 // here we can't directly assign the data directly as our data member is private. We will flatten the multidimensional input to a single dimension using row/column major ordering. PyTorch is row-major by default, and we will do the same
 Tensor::Tensor(std::vector<std::vector<float>> data, bool requires_grad,
                 std::function<void(const std::vector<float>&)> gradfn,
-                std::vector<std::sharedptr<Tensor>> parents):
+                std::vector<std::shared_ptr<Tensor>> parents):
                 _shape{data.size(), data[0].size()}, _stride{data[0].size(), 1}, _requires_grad(requires_grad), _gradfn(gradfn),
                 _parents(parents){
 
-// check if dimensions match, #rows == #cols
+// check if dimensions match, each row has same #cols
     std::size_t n_expected_columns = data[0].size();
     for(std::size_t i = 0; i < data.size(); i++){
         if (data[i].size() != n_expected_columns){
@@ -158,7 +158,7 @@ const std::vector<std::size_t> &Tensor::shape() const {return _shape;}
 const std::vector<std::size_t> &Tensor::stride() const {return _stride;}
 
 // method to see if _requirs_grad variable is true
-const bool &Tensor::requires_grad() const{return _requirs_grad;}
+const bool &Tensor::requires_grad() const{return _requires_grad;}
 // method to get the grad variable which is storing the gradients
 const std::vector<float> &Tensor::grad() const {return _grad;}
 // method to add a gradient update to our current gradients
@@ -169,7 +169,7 @@ void Tensor::add_to_grad(const std::vector<float>& grad_update){
     if(_grad.size() != grad_update.size()){
         throw std::runtime_error("Gradient shape mismatch during accumulation.");
     }
-    for(std::size_t i = 0; i < grad.size(); i++){
+    for(std::size_t i = 0; i < _grad.size(); i++){
         _grad[i] += grad_update[i];
     }
 }
@@ -250,7 +250,7 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
                     grad_self += grad_output[i];
                 }
                 self -> add_to_grad({grad_self});
-                other -> add_to_grad({grad_self});
+                other -> add_to_grad(grad_output);
             };
             return std::make_shared<Tensor>(result, true, gradfn, parents);
         }
@@ -292,6 +292,21 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
         for(std::size_t i = 0; i < shape()[0]; i++){
             result.push_back(operator()(i) + other -> item());
         }
+        if(_requires_grad || other -> requires_grad()){
+            std::shared_ptr<Tensor> self = shared_from_this();
+            std::vector<std::shared_ptr<Tensor>> parents{self, other};
+            std::function<void(const std::vector<float>&)> gradfn = [self, other](const std::vector<float> &grad_output){
+                // broadcasting in forward pass is equivalent to summation in backward
+                float grad_self = 0.0;
+                for(std::size_t i = 0; i < grad_output.size(); i++){
+                    grad_self += grad_output[i];
+                }
+                self -> add_to_grad(grad_output);
+                other -> add_to_grad({grad_self});
+            };
+            return std::make_shared<Tensor>(result, true, gradfn, parents);
+        }
+
         return std::make_shared<Tensor>(result);
     }
 
@@ -305,6 +320,20 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other){
                 result_i.push_back(operator()(i, j) + other -> item());
             }
             result.push_back(result_i);
+        }
+        if(_requires_grad || other -> requires_grad()){
+            std::shared_ptr<Tensor> self = shared_from_this();
+            std::vector<std::shared_ptr<Tensor>> parents{self, other};
+            std::function<void(const std::vector<float>&)> gradfn = [self, other](const std::vector<float> &grad_output){
+                // broadcasting in forward pass is equivalent to summation in backward
+                float grad_self = 0.0;
+                for(std::size_t i = 0; i < grad_output.size(); i++){
+                    grad_self += grad_output[i];
+                }
+                self -> add_to_grad(grad_output);
+                other -> add_to_grad({grad_self});
+            };
+            return std::make_shared<Tensor>(result, true, gradfn, parents);
         }
         return std::make_shared<Tensor>(result);
     }
@@ -393,12 +422,12 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
                 for(std::size_t i = 0; i < self -> numel(); i++){
                     // output gradients is a scalar
                     grad_self.push_back((*other)(i)*grad_output[0]);
-                    grad_self.push_back((*self)(i)*grad_output[0]);
+                    grad_other.push_back((*self)(i)*grad_output[0]);
                 }
                 self -> add_to_grad(grad_self);
                 other -> add_to_grad(grad_other);
             };
-            return std::make_shared<Tensor>(rsults, true, gradfn, parents);
+            return std::make_shared<Tensor>(result, true, gradfn, parents);
         }
         return std::make_shared<Tensor>(result);
     }
@@ -427,17 +456,17 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
                 }
 
                 std::vector<float> grad_other;
-                for(std::size_t i = 0; i < self -> shape()[0]; i++){
+                for(std::size_t i = 0; i < other -> shape()[0]; i++){
                     float grad_other_i = 0.0;
                     for(std::size_t j = 0; j < self -> shape()[0]; j++){
-                        grad_other_i += (*self)(j,i) * grad_output[j];
+                        grad_other_i += (*self)(j, i) * grad_output[j];
                     }
                     grad_other.push_back(grad_other_i);
                 }
                 self -> add_to_grad(grad_self);
                 other -> add_to_grad(grad_other);
             };
-            return std::make_shared<Tensor>(rsults, true, gradfn, parents);
+            return std::make_shared<Tensor>(result, true, gradfn, parents);
         }
 
         return std::make_shared<Tensor>(result);
@@ -452,6 +481,31 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
                 result_i += operator()(j) * (*other)(j, i);
             }
             result.push_back(result_i);
+        }
+        if(_requires_grad || other -> requires_grad()){
+            std::shared_ptr<Tensor> self = shared_from_this();
+            std::vector<std::shared_ptr<Tensor>> parents{self, other};
+            std::function<void(const std::vector<float>&)> gradfn = [self, other](const std::vector<float> &grad_output){
+                std::vector<float> grad_self;
+                // iterating in row-major order
+                for(std::size_t i = 0; i < self -> shape()[0]; i++){
+                    float grad_self_i = 0.0;
+                    for(std::size_t j = 0; j < other -> shape()[1]; j++){
+                        grad_self_i += (*other)(i, j) * grad_output[j];
+                    }
+                    grad_self.push_back(grad_self_i);
+                }
+
+                std::vector<float> grad_other;
+                for(std::size_t j = 0; j < other -> shape()[0]; j++){
+                    for(std::size_t i = 0; i < other -> shape()[1]; i++){
+                        grad_other.push_back((*self)(j) * grad_output[i]);
+                    }
+                }
+                self -> add_to_grad(grad_self);
+                other -> add_to_grad(grad_other);
+            };
+            return std::make_shared<Tensor>(result, true, gradfn, parents);
         }
         return std::make_shared<Tensor>(result);
     }
@@ -496,13 +550,13 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
                         for(std::size_t k = 0; k < self -> shape()[0]; k++){
                             grad_other_i_j += (*self)(k,i) * grad_output[k * (other -> shape()[1]) + j];
                         }
-                    }
                     grad_other.push_back(grad_other_i_j);
+                    }
                 }
                 self -> add_to_grad(grad_self);
                 other -> add_to_grad(grad_other);
             };
-            return std::make_shared<Tensor>(rsults, true, gradfn, parents);
+            return std::make_shared<Tensor>(result, true, gradfn, parents);
         }
 
         return std::make_shared<Tensor>(result);
