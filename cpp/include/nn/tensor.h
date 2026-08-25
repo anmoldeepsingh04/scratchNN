@@ -43,7 +43,6 @@ class Tensor : public std::enable_shared_from_this<Tensor>{
         void add_to_grad(const std::vector<float> &grad_updates);
         void zero_grad();
         std::size_t numel() const;
-        std::vector<float> &data();
         void backward();
 
         // overloading the << operator to print data on the terminal
