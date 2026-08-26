@@ -30,7 +30,7 @@ void Module::register_module(std::string name, std::shared_ptr<Module> module){
 }
 
 std::vector<std::pair<std::string, std::shared_ptr<Tensor>>> Module::parameters() const{
-    std::vector<<std::pair<std::string, std::shared_ptr<Tensor>>> params;
+    std::vector<std::pair<std::string, std::shared_ptr<Tensor>>> params;
     for(const auto& p : _parameters){
         params.push_back(p);
     }

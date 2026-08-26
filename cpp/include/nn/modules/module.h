@@ -16,4 +16,8 @@ class Module{
         std::shared_ptr<Tensor> operator()(std::shared_ptr<Tensor> input);
         void register_parameter(std::string name, std::shared_ptr<Tensor> param);
         void register_module(std::string name, std::shared_ptr<Module> module);
+        std::vector<std::pair<std::string, std::shared_ptr<Tensor>>> parameters() const;
+        std::unordered_map<std::string, std::shared_ptr<Tensor>> state_dict() const;
+        void load_state_dict(std::unordered_map<std::string, std::shared_ptr<Tensor>>& state_dict);
+        virtual ~Module() = default;
 };
