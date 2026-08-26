@@ -18,7 +18,7 @@ std::shared_ptr<Tensor> Relu::forward(std::shared_ptr<Tensor> input){
             std::function<void(const std::vector<float>&)> gradfn = [input](const std::vector<float>& grad_output){
                 std::vector<float> grad_input;
                 if(input -> item() > 0){
-                    grad_input.push_back(grad_output);
+                    grad_input.push_back(grad_output[0]);
                 }
                 else{
                     grad_input.push_back(0.0f);
@@ -59,6 +59,7 @@ std::shared_ptr<Tensor> Relu::forward(std::shared_ptr<Tensor> input){
         }
         return std::make_shared<Tensor>(result);
     }
+    //2d
     else{
         std::vector<std::vector<float>> result;
         for(std::size_t i = 0; i < input -> shape()[0]; i++){
@@ -75,7 +76,7 @@ std::shared_ptr<Tensor> Relu::forward(std::shared_ptr<Tensor> input){
         }
         if(input -> requires_grad()){
             std::vector<std::shared_ptr<Tensor>> parents{input};
-            std::function<void(const std::vector<float>&) gradfn = [input](const std::vector<float>& grad_output){
+            std::function<void(const std::vector<float>&)> gradfn = [input](const std::vector<float>& grad_output){
                 std::vector<float> grad_input;
                 for(std::size_t i = 0; i < input -> numel(); i++){
                     if((*input)(i) > 0){

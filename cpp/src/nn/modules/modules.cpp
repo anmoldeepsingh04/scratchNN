@@ -20,7 +20,7 @@ void Module::register_parameter(std::string name, std::shared_ptr<Tensor> param)
     _parameters.push_back({name, param});
 }
 
-void Module::register_module(std::string name, std::shared_ptr<Tensor> module){
+void Module::register_module(std::string name, std::shared_ptr<Module> module){
     for(const auto& m : _modules){
         if(m.first == name){
             throw std::runtime_error("Module '" + name + " already registered.");
@@ -30,7 +30,7 @@ void Module::register_module(std::string name, std::shared_ptr<Tensor> module){
 }
 
 std::vector<std::pair<std::string, std::shared_ptr<Tensor>>> Module::parameters() const{
-    std::vecotr<<std::pair<std::string, std::shared_ptr<Tensor>>> params;
+    std::vector<<std::pair<std::string, std::shared_ptr<Tensor>>> params;
     for(const auto& p : _parameters){
         params.push_back(p);
     }

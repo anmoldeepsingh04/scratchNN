@@ -1,6 +1,7 @@
 #pragma once
 #include "module.h"
 #include "nn/tensor.h"
+#include <memory>
 
 class Linear : public Module{
     private:
@@ -13,4 +14,5 @@ class Linear : public Module{
     public:
         Linear(std::size_t in_features, std::size_t out_features, std::size_t seed = 7);
         std::shared_ptr<Tensor> forward(std::shared_ptr<Tensor> input) override;
+        void reset_parameters();
 };

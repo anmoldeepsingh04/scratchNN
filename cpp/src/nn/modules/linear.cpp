@@ -19,7 +19,7 @@ void Linear::reset_parameters(){
 
     for(std::size_t i = 0; i < _weight -> shape()[0]; i++){
         for(std::size_t j = 0; j < _weight -> shape()[1]; j++){
-            (*_ weight)(i, j) = std::uniform_real_distribution<float>(-bound, bound)(generator);
+            (*_weight)(i, j) = std::uniform_real_distribution<float>(-bound, bound)(generator);
         }
     }
 }
