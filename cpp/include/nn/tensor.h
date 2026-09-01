@@ -15,6 +15,8 @@ class Tensor : public std::enable_shared_from_this<Tensor>{
         std::vector<std::shared_ptr<Tensor>> _parents;
         bool _requires_grad;
         void _backward();
+        bool _visited = false;
+        void _reset_graph_visit();
 
     public:
         Tensor(float data, bool requires_grad = false,
