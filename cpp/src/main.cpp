@@ -28,6 +28,12 @@ int main(){
 
     std::cout<<"Visualizing first batch of training data."<<std::endl;
     
+std::cout << "Dataset length: "
+          << mnist_train.get_length() << std::endl;
+
+std::cout << "Number of batches: "
+          << mnist_train_loader.n_batches() << std::endl;
+
     for(auto batch : mnist_train_loader){
         std::cout << "Batch received\n";
         for(auto item : batch){

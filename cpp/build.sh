@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 rm -rf build
 mkdir build
 cd build
@@ -12,4 +10,5 @@ echo ""
 echo "===== BUILD COMPLETE ====="
 echo ""
 
-./neural_cpp
+cd ..
+./build/neural_cpp

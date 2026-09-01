@@ -54,6 +54,11 @@ std::vector<std::vector<std::vector<float>>> read_mnist(std::string path){
             dataset.push_back(image);
         }
     }
+
+    if(!file.is_open()){
+            throw std::runtime_error("Could not open MNIST image file: " + path);
+        }
+    
     return dataset;
 }
 
@@ -76,6 +81,9 @@ std::vector<int> read_mnist_labels(std::string path){
             labels.push_back(label);
         }
     }
+    if(!file.is_open()){
+            throw std::runtime_error("Could not open MNIST label file: " + path);
+        }
     return labels;
 }
 
