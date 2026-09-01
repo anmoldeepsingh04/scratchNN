@@ -132,7 +132,7 @@ void train_new_mnist_model(){
 void inference_on_saved_model(){
     NeuralNetwork model;
     std::cout<<"Loading model..."<<std::endl;
-    auto loaded_state_dict = load("models/mnist.nn");
+    auto loaded_state_dict = load("model/mnist.nn");
     model.load_state_dict(loaded_state_dict);
 
     std::cout<<"Loading test set..."<<std::endl;

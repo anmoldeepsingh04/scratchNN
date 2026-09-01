@@ -23,17 +23,17 @@ std::shared_ptr<Tensor> Softmax::forward(std::shared_ptr<Tensor> input){
     if(input -> shape().size() == 1){
         // subtracting the maximums value to avoid overflow
         float max_val = (*input)(0);
-        for(int i = 0; i < input -> numel(); i++){
+        for(std::size_t i = 0; i < input -> numel(); i++){
             if((*input)(i) > max_val){
                 max_val = (*input)(i);
             }
         }
         std::vector<float> s;
         float sum_exp = 0.0f;
-        for(std::size_t i; i < input -> numel(); i++){
+        for(std::size_t i = 0; i < input -> numel(); i++){
             sum_exp += std::exp((*input)(i) - max_val);
         }
-        for(std::size_t i; i< input -> numel(); i++){
+        for(std::size_t i = 0; i< input -> numel(); i++){
             s.push_back((std::exp((*input)(i) - max_val) / sum_exp));
         }
         if(input -> requires_grad()){

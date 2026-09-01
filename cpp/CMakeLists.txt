@@ -40,4 +40,6 @@ target_link_libraries(run_tests PRIVATE neural_core gtest gtest_main)
 
 # register tests
 include(GoogleTest)
-gtest_discover_tests(run_tests)
+gtest_discover_tests(run_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)

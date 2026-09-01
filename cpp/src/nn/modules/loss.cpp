@@ -15,7 +15,7 @@ std::shared_ptr<Tensor> Loss::operator()(std::shared_ptr<Tensor> input, std::siz
     return forward(input, target);
 }
 
-std::shared_ptr<Tensor> NegativeLogLikelihood::forward(std::shared_ptr<Tensor> input, std::size_t target){
+std::shared_ptr<Tensor> NegativeLogLikelihood::forward(std::shared_ptr<Tensor> input, std::size_t target){ 
     if(input -> shape().size() != 1){
         throw std::runtime_error("Negative log-likelihood loss expects a 1D input tensor.");
     }
