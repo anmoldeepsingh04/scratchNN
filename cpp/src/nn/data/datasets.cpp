@@ -121,8 +121,8 @@ void visualize_image(std::shared_ptr<Tensor> image){
             float px = (*image)(i,j);
             std::cout << (px > 0.75 ? '@'
                             : px > 0.5 ? '#'
-                            : px > 0.5 ? '+'
-                            : px > 0.5 ? '.'
+                            : px > 0.25 ? '+'
+                            : px > 0.1 ? '.'
                                        : ' ');
         }
         std::cout << '\n';

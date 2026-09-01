@@ -58,4 +58,7 @@ std::shared_ptr<Tensor> Softmax::forward(std::shared_ptr<Tensor> input){
         }
         return std::make_shared<Tensor>(s);
     }
-}
+    else{
+        throw std::runtime_error("Softmax is only allowed for 1D vectors.");
+    }
+};
