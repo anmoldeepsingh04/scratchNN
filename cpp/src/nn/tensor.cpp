@@ -175,9 +175,27 @@ void Tensor::add_to_grad(const std::vector<float>& grad_update){
 }
 // method to initialize gradients to a vector of the same size as data we're storing
 void Tensor::zero_grad(){ _grad = std::vector<float>(_data.size(), 0.0f);}
+
+void Tensor::_reset_graph_visit(){
+    // recursively resetting '_visited' in entire graph
+    if(!_visited){
+        return;
+    }
+    _visited = false;
+    for(std::size_t i = 0; i < _parents.size(); i++){
+        _parents[i] -> _reset_graph_visit();
+    }
+}
 // numel method like pytorch that tells us how many elements we're storing in data
 std::size_t Tensor::numel() const{ return _data.size();}
 
+std::vector<float> &Tensor::data(){
+    return _data;
+}
+
+std::size_t Tensor::argmax() const{
+    return std::distance(_data.begin(), std::max_element(_data.begin(), _data.end()));
+}
 
 // constructing a tensor: defining a custom visualization method to see the data
 std::ostream &operator<<(std::ostream &os, const Tensor &obj){
@@ -560,5 +578,34 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other){
         }
 
         return std::make_shared<Tensor>(result);
+    }
+}
+
+void Tensor::backward(){
+    if(!_requires_grad){
+        throw std::runtime_error("Element does not required gradient.");
+    }
+    if(_shape.size() != 0){
+        throw std::runtime_error("Gradient can only be calculated for scalar outputs.");
+    }
+
+    _reset_graph_visit();
+    _grad = {1.0f};
+    _backward();
+}
+
+void Tensor::_backward(){
+    if(!_requires_grad){
+        return;
+    }
+    if(_visited){
+        return;
+    }
+    _visited = true;
+    if(_gradfn){
+        _gradfn(_grad);
+    }
+    for(std::size_t i = 0; i < _parents.size(); i++){
+        _parents[i] -> _backward();
     }
 }
