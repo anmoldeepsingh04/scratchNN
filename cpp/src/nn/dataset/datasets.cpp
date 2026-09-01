@@ -83,3 +83,48 @@ MNIST::MNIST(std::string data_path, std::string labels_path){
     _images = read_mnist(data_path);
     _labels = read_mnist_labels(labels_path);
 }
+
+std::pair<int, std::shared_ptr<Tensor>> MNIST::get_item(int index){
+    return std::make_pair(_labels[index], std::make_shared<Tensor>(_images[index]));
+}
+
+int MNIST::get_length(){
+    return _images.size();
+}
+
+std::string MNIST::label_to_class(int label){
+    return classes[label];
+}
+
+// for FashionMNIST
+
+FashionMNIST::FashionMNIST(std::string data_path, std::string labels_path){
+    _images = read_mnist(data_path);
+    _labels = read_mnist_labels(labels_path);
+}
+
+std::pair<int, std::shared_ptr<Tensor>> FashionMNIST::get_item(int index){
+    return std::make_pair(_labels[index], std::make_shared<Tensor>(_images[index]));
+}
+
+int FashionMNIST::get_length(){
+    return _images.size();
+}
+
+std::string FashionMNIST::label_to_class(int label){
+    return _classes[label];
+}
+
+void visualize_image(std::shared_ptr<Tensor> image){
+    for(int i = 0; i < image -> shape()[0]; ++i){
+        for(int j = 0; j < image-> shape()[1]; ++j){
+            float px = (*image)(i,j);
+            std::cout << (px > 0.75 ? '@'
+                            : px > 0.5 ? '#'
+                            : px > 0.5 ? '+'
+                            : px > 0.5 ? '.'
+                                       : ' ');
+        }
+        std::cout << '\n';
+    }
+}

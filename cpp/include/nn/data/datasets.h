@@ -19,4 +19,22 @@ class MNIST : public Dataset{
     
     public:
         MNIST(std::string data_path, std::string labels_path);
+        std::pair<int, std::shared_ptr<Tensor>> get_item(int index) override;
+        int get_length() override;
+        std::string label_to_class(int label);
 };
+
+class FashionMNIST : public Dataset{
+    private:
+        std::vector<std::vector<std::vector<float>>> _images;
+        std::vector<int> _labels;
+        std::vector<std::string> _classes = {
+            "TShirt/Top", "Trousers", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle Boots"};
+    public:
+        FashionMNIST(std::string data_path, std::string labels_path);
+        std::pair<int, std::shared_ptr<Tensor>> get_item(int index) override;
+        int get_length() override;
+        std::string label_to_class(int label);
+};
+
+void visualize_image(std::shared_ptr<Tensor> image);
