@@ -12,6 +12,9 @@ const int MAGIC_NUMBER = 1268;
 
 void save(const std::unordered_map<std::string, std::shared_ptr<Tensor>>& state_dict, const std::string& filename){
     std::ofstream file(filename, std::ios::binary);
+    if(!file){
+        throw std::runtime_error("Could not open "+ filename+" for writing");
+    }
     file.write(reinterpret_cast<const char *>(&MAGIC_NUMBER), sizeof(int));
     for(const auto& [weight_name, weight] : state_dict){
         
@@ -25,7 +28,10 @@ void save(const std::unordered_map<std::string, std::shared_ptr<Tensor>>& state_
 
         size_t data_length = weight -> numel();
         file.write(reinterpret_cast<const char *>(&data_length), sizeof(size_t));
-        file.write(reinterpret_cast<const char *>(weight -> shape().data()), data_length * sizeof(float));
+        file.write(reinterpret_cast<const char *>(weight -> data().data()), data_length * sizeof(float));
+    }
+    if(!file){
+        throw std::runtime_error("Error while writing " + filename);
     }
 }
 
@@ -61,7 +67,7 @@ std::unordered_map<std::string, std::shared_ptr<Tensor>> load(const std::string 
         file.read(reinterpret_cast<char *>(&data_length), sizeof(size_t));
 
         std::vector<float> raw(data_length);
-        // file.read(reinterpret_cast<char *>(raw.data()), data_length * sizeof(float));
+        file.read(reinterpret_cast<char *>(raw.data()), data_length * sizeof(float));
 
         std::shared_ptr<Tensor> tensor;
 
@@ -75,7 +81,7 @@ std::unordered_map<std::string, std::shared_ptr<Tensor>> load(const std::string 
             std::vector<std::vector<float>> data_2d(shape[0], std::vector<float>(shape[1]));
             for(size_t i = 0; i < shape[0]; i++){
                 for(size_t j = 0; j < shape[1]; j++){
-                    data_2d[i][j] = raw[i * shape[i] + j];
+                    data_2d[i][j] = raw[i * shape[1] + j];
                 }
             }
             tensor = std::make_shared<Tensor>(data_2d);
