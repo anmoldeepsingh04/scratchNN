@@ -109,7 +109,7 @@ void train_new_mnist_model(){
     MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
 
     // to train the model on fashion-mnist dataset
-    // MNIST mnist_train = MNIST("data/FashionMNIST/raw/train-images-idx3-ubyte", "data/MNIST/raw/train-labels-idx1-ubyte");
+    // MNIST mnist_train = MNIST("data/FashionMNIST/raw/train-images-idx3-ubyte", "data/FashionMNIST/raw/train-labels-idx1-ubyte");
     // MNIST mnist_test = MNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
 
     std::cout<<"Dataset loaded!"<<std::endl;
@@ -162,6 +162,7 @@ void inference_on_saved_model(){
     // MNIST mnist_test = MNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
 
     int n_samples = 10;
+    int correct_prediction = 0;
 
     std::vector<int> all_indices(mnist_test.get_length());
     std::iota(all_indices.begin(), all_indices.end(), 0);
@@ -171,15 +172,17 @@ void inference_on_saved_model(){
     std::vector<int> indices(all_indices.begin(), all_indices.begin() + n_samples);
 
     for(int i = 0; i < n_samples; i++){
-        std::cout<<"Sample "<<i<<" of "<<n_samples<<std::endl;
+        std::cout<<"Sample "<<i+1<<" of "<<n_samples<<std::endl;
         std::pair<int, std::shared_ptr<Tensor>> sample_image = mnist_test.get_item(indices[i]);
-        visualize_image(sample_image.second);
+        // visualize_image(sample_image.second);
         auto output = model(sample_image.second);
         int predicted_class = output -> argmax();
         std::cout<<"Predicted class: "<<mnist_test.label_to_class(predicted_class)<<std::endl;
         std::cout<<"Actual class: "<<mnist_test.label_to_class(sample_image.first)<<std::endl;
+        (mnist_test.label_to_class(predicted_class) == mnist_test.label_to_class(sample_image.first)) ? correct_prediction++ : correct_prediction;
         std::cout<<"---------------------------------------------------------------"<<std::endl;
     }
+    std::cout<<"Percentage of correct responses: "<<(correct_prediction/(double)n_samples)*100<<"%"<<std::endl;
 }
 
 int main(){
