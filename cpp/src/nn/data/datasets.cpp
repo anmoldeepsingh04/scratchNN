@@ -120,7 +120,7 @@ int FashionMNIST::get_length(){
 }
 
 std::string FashionMNIST::label_to_class(int label){
-    return _classes[label];
+    return classes[label];
 }
 
 void visualize_image(std::shared_ptr<Tensor> image){

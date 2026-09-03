@@ -105,12 +105,8 @@ void train_new_mnist_model(){
     std::cout<<"Loading dataset..."<<std::endl;
 
     // to train the model on mnist dataset
-    // MNIST mnist_train = MNIST("data/MNIST/raw/train-images-idx3-ubyte", "data/MNIST/raw/train-labels-idx1-ubyte");
-    // MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
-
-    // to train the model on fashion-mnist dataset
-    MNIST mnist_train = MNIST("data/FashionMNIST/raw/train-images-idx3-ubyte", "data/FashionMNIST/raw/train-labels-idx1-ubyte");
-    MNIST mnist_test = MNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
+    MNIST mnist_train = MNIST("data/MNIST/raw/train-images-idx3-ubyte", "data/MNIST/raw/train-labels-idx1-ubyte");
+    MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
 
     std::cout<<"Dataset loaded!"<<std::endl;
 
@@ -135,33 +131,58 @@ void train_new_mnist_model(){
     auto state_dict = model.state_dict();
 
     // to save the mnist model
-    // save(state_dict, "model/mnist.nn");
+    save(state_dict, "model/mnist.nn");
+}
 
+void train_new_fashion_mnist_model(){
+    std::cout<<"Loading dataset..."<<std::endl;
+
+    // to train the model on fashion-mnist dataset
+    FashionMNIST fashion_mnist_train = FashionMNIST("data/FashionMNIST/raw/train-images-idx3-ubyte", "data/FashionMNIST/raw/train-labels-idx1-ubyte");
+    FashionMNIST fashion_mnist_test = FashionMNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
+
+    std::cout<<"Dataset loaded!"<<std::endl;
+
+    int batch_size = 10;
+    Dataloader train_dataloader(&fashion_mnist_train, batch_size);
+    Dataloader test_dataloader(&fashion_mnist_test, batch_size);
+
+    NeuralNetwork model;
+    CrossEntropyLoss loss_fxn;
+    float learning_rate = 0.001f;
+    SGD optimizer(model.parameters(), learning_rate);
+
+    // training loop
+    int n_epochs = 1;
+    for(int epoch = 0; epoch < n_epochs; epoch++){
+        std::cout<<"[Epoch "<<epoch<<"/"<<n_epochs<<"] Training..."<<std::endl;
+        train(train_dataloader, model, loss_fxn, optimizer);
+        std::cout<<"[Epoch "<<epoch<<"/"<<n_epochs<<"] Testing..."<<std::endl;
+        test(test_dataloader, model, loss_fxn);
+    }
+
+    auto state_dict = model.state_dict();
+    
     // to save the fashion-mnist model
     save(state_dict, "model/fashion_mnist.nn");
 }
 
-void inference_on_saved_model(){
+void inference_on_saved_mnist_model(){
+
     NeuralNetwork model;
     std::cout<<"Loading model..."<<std::endl;
 
     // to load the mnist model
-    // auto loaded_state_dict = load("model/mnist.nn");
-
-    // to load the fashion-mnist model
-    auto loaded_state_dict = load("model/fashion_mnist.nn");
+    auto loaded_state_dict = load("model/mnist.nn");
 
     model.load_state_dict(loaded_state_dict);
 
     std::cout<<"Loading test set..."<<std::endl;
 
     // loading the mnist dataset
-    // MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
+    MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
 
-    // loading the fashion-mnist dataset
-    MNIST mnist_test = MNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
-
-    int n_samples = 50;
+    int n_samples = 10;
     int correct_prediction = 0;
 
     std::vector<int> all_indices(mnist_test.get_length());
@@ -182,14 +203,63 @@ void inference_on_saved_model(){
         (mnist_test.label_to_class(predicted_class) == mnist_test.label_to_class(sample_image.first)) ? correct_prediction++ : correct_prediction;
         std::cout<<"---------------------------------------------------------------"<<std::endl;
     }
+    std::cout<<"Correct/Total responses: "<<correct_prediction<<"/"<<n_samples<<std::endl;
+    std::cout<<"Percentage of correct responses: "<<(correct_prediction/(double)n_samples)*100<<"%"<<std::endl;
+}
+
+void inference_on_saved_fashion_mnist_model(){
+
+    NeuralNetwork model;
+    std::cout<<"Loading model..."<<std::endl;
+
+    // to load the fashion-mnist model
+    auto loaded_state_dict = load("model/fashion_mnist.nn");
+
+    model.load_state_dict(loaded_state_dict);
+
+    std::cout<<"Loading test set..."<<std::endl;
+
+    // loading the fashion-mnist dataset
+    FashionMNIST fashion_mnist_test = FashionMNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
+
+    int n_samples = 10;
+    int correct_prediction = 0;
+
+    std::vector<int> all_indices(fashion_mnist_test.get_length());
+    std::iota(all_indices.begin(), all_indices.end(), 0);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(all_indices.begin(), all_indices.end(), g);
+    std::vector<int> indices(all_indices.begin(), all_indices.begin() + n_samples);
+
+    for(int i = 0; i < n_samples; i++){
+        std::cout<<"Sample "<<i+1<<" of "<<n_samples<<std::endl;
+        std::pair<int, std::shared_ptr<Tensor>> sample_image = fashion_mnist_test.get_item(indices[i]);
+        // visualize_image(sample_image.second);
+        auto output = model(sample_image.second);
+        int predicted_class = output -> argmax();
+        std::cout<<"Predicted class: "<<fashion_mnist_test.label_to_class(predicted_class)<<std::endl;
+        std::cout<<"Actual class: "<<fashion_mnist_test.label_to_class(sample_image.first)<<std::endl;
+        (fashion_mnist_test.label_to_class(predicted_class) == fashion_mnist_test.label_to_class(sample_image.first)) ? correct_prediction++ : correct_prediction;
+        std::cout<<"---------------------------------------------------------------"<<std::endl;
+    }
+    std::cout<<"Correct/Total responses: "<<correct_prediction<<"/"<<n_samples<<std::endl;
     std::cout<<"Percentage of correct responses: "<<(correct_prediction/(double)n_samples)*100<<"%"<<std::endl;
 }
 
 int main(){
 
-    // to train the model
+    // for MNIST model
+    // to train the mnist model
     // train_new_mnist_model();
 
-    // to run inference on the model
-    inference_on_saved_model();
+    // to run inference on the mnist model
+    inference_on_saved_mnist_model();
+
+    // for Fashion MNIST model
+    // to train the fashion mnist model
+    // train_new_fashion_mnist_model();
+
+    // to run inference on the fashion mnist model
+    inference_on_saved_fashion_mnist_model();
 }

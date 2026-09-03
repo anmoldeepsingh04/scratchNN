@@ -28,7 +28,7 @@ class FashionMNIST : public Dataset{
     private:
         std::vector<std::vector<std::vector<float>>> _images;
         std::vector<int> _labels;
-        std::vector<std::string> _classes = {
+        std::vector<std::string> classes = {
             "TShirt/Top", "Trousers", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle Boots"};
     public:
         FashionMNIST(std::string data_path, std::string labels_path);
