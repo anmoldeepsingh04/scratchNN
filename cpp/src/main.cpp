@@ -103,8 +103,15 @@ void test(Dataloader& dataloader, NeuralNetwork& model, CrossEntropyLoss& loss_f
 
 void train_new_mnist_model(){
     std::cout<<"Loading dataset..."<<std::endl;
+
+    // to train the model on mnist dataset
     MNIST mnist_train = MNIST("data/MNIST/raw/train-images-idx3-ubyte", "data/MNIST/raw/train-labels-idx1-ubyte");
     MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
+
+    // to train the model on fashion-mnist dataset
+    // MNIST mnist_train = MNIST("data/FashionMNIST/raw/train-images-idx3-ubyte", "data/MNIST/raw/train-labels-idx1-ubyte");
+    // MNIST mnist_test = MNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
+
     std::cout<<"Dataset loaded!"<<std::endl;
 
     int batch_size = 10;
@@ -126,17 +133,33 @@ void train_new_mnist_model(){
     }
 
     auto state_dict = model.state_dict();
+
+    // to save the mnist model
     save(state_dict, "model/mnist.nn");
+
+    // to save the fashion-mnist model
+    // save(state_dict, "model/fashion_mnist.nn");
 }
 
 void inference_on_saved_model(){
     NeuralNetwork model;
     std::cout<<"Loading model..."<<std::endl;
+
+    // to load the mnist model
     auto loaded_state_dict = load("model/mnist.nn");
+
+    // to load the fashion-mnist model
+    // auto loaded_state_dict = load("model/fashion_mnist.nn");
+
     model.load_state_dict(loaded_state_dict);
 
     std::cout<<"Loading test set..."<<std::endl;
+
+    // loading the mnist dataset
     MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
+
+    // loading the fashion-mnist dataset
+    // MNIST mnist_test = MNIST("data/FashionMNIST/raw/t10k-images-idx3-ubyte", "data/FashionMNIST/raw/t10k-labels-idx1-ubyte");
 
     int n_samples = 10;
 
@@ -160,5 +183,10 @@ void inference_on_saved_model(){
 }
 
 int main(){
-    train_new_mnist_model();
+
+    // to train the model
+    // train_new_mnist_model();
+
+    // to run inference on the model
+    inference_on_saved_model();
 }
