@@ -1,4 +1,5 @@
 # Dataset
+pytorch/data/
 py/data/
 py/data/mnist_train.csv
 py/data/mnist_test.csv
