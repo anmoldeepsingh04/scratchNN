@@ -251,15 +251,15 @@ int main(){
 
     // for MNIST model
     // to train the mnist model
-    // train_new_mnist_model();
+    train_new_mnist_model();
 
     // to run inference on the mnist model
-    inference_on_saved_mnist_model();
+    // inference_on_saved_mnist_model();
 
     // for Fashion MNIST model
     // to train the fashion mnist model
     // train_new_fashion_mnist_model();
 
     // to run inference on the fashion mnist model
-    inference_on_saved_fashion_mnist_model();
+    // inference_on_saved_fashion_mnist_model();
 }

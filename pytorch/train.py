@@ -8,9 +8,9 @@ from torch.utils.data import DataLoader
 # configurations
 batch_size = 10
 lr = 0.001
-epochs = 10
+epochs = 5
 
-device = torch.device("mps" if torch.mps.is_available() else "cpu")
+device = torch.device("cpu") #torch.device("mps" if torch.mps.is_available() else "cpu")
 
 # model definition
 class NeuralNetwork(nn.Module):
@@ -32,14 +32,14 @@ class NeuralNetwork(nn.Module):
 # dataset loading
 transform = transforms.ToTensor()
 
-train_dataset = datasets.FashionMNIST(
+train_dataset = datasets.MNIST(
     root = "data",
     train = True,
     download = True,
     transform = transform
 )
 
-test_dataset = datasets.FashionMNIST(
+test_dataset = datasets.MNIST(
     root = "data",
     train = False,
     download = True,
@@ -61,10 +61,7 @@ test_loader = DataLoader(
 # loss and optimizer definition
 model = NeuralNetwork().to(device)
 loss_fxn = nn.CrossEntropyLoss()
-optimizer = optim.SGD(
-    model.parameters(),
-    lr = lr
-)
+optimizer = optim.SGD(model.parameters(), lr = lr)
 
 # training loop
 def train():
@@ -72,7 +69,7 @@ def train():
 
     for epoch in range(epochs):
         cum_loss = 0.0
-        start_time = time.perf_counter()
+        # start_time = time.perf_counter()
 
         for batch_id, (images, labels) in enumerate(train_loader):
             images = images.to(device)
@@ -83,14 +80,14 @@ def train():
             loss.backward()
             optimizer.step()
             cum_loss += loss.item()
-        epoch_time = time.perf_counter() - start_time
+        # epoch_time = time.perf_counter() - start_time
 
-        print(
-            f"Epoch [{epoch + 1}/{epochs}]\n"
-            f"Loss: {cum_loss / len(train_loader):.6f}\n"
-            f"Time: {epoch_time:.3f}s\n"
-        )
-    torch.save(model.state_dict(), "models/long_fashion_mnist_pytorch.pth")
+        # print(
+        #     f"Epoch [{epoch + 1}/{epochs}]\n"
+        #     f"Loss: {cum_loss / len(train_loader):.6f}\n"
+        #     f"Time: {epoch_time:.3f}s\n"
+        # )
+    torch.save(model.state_dict(), "models/mnist_pytorch.pth")
 
 # testing loop
 def test():
@@ -110,11 +107,11 @@ def test():
             correct += (predictions == labels).sum().item()
             total += labels.size(0)
 
-    accuracy = 100.0 * correct/total
-    average_loss = cum_loss/len(test_loader)
+    # accuracy = 100.0 * correct/total
+    # average_loss = cum_loss/len(test_loader)
 
-    print(f"Test accuracy: {accuracy:0.2f}\n")
-    print(f"Test loss: {average_loss:0.6f}\n")
+    # print(f"Test accuracy: {accuracy:0.2f}\n")
+    # print(f"Test loss: {average_loss:0.6f}\n")
 
 # main function
 if __name__ == "__main__":
