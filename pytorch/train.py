@@ -5,6 +5,8 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
+start = time.perf_counter()
+
 # configurations
 batch_size = 10
 lr = 0.001
@@ -28,6 +30,8 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = self.flatten(x)
         return self.network(x)
+
+start_data = time.perf_counter()
 
 # dataset loading
 transform = transforms.ToTensor()
@@ -57,6 +61,8 @@ test_loader = DataLoader(
     batch_size = batch_size,
     shuffle = False
 )
+
+end_data = time.perf_counter()
 
 # loss and optimizer definition
 model = NeuralNetwork().to(device)
@@ -116,12 +122,25 @@ def test():
 # main function
 if __name__ == "__main__":
     print(f"Using device: {device}\n")
+    start_train = time.perf_counter()
     train()
-    test()
+    end_train = time.perf_counter()
 
+    start_test = time.perf_counter()
+    test()
+    end_test = time.perf_counter()
     # for using saved models
     # model = NeuralNetwork()
     # model.load_state_dict(torch.load("models/mnist_pytorch.pth", weights_only=True))
-    # model.eval()  
+    # model.eval()
+    end = time.perf_counter()
+
+    data_loading_time = end_data - start_data
+    train_time = end_train - start_train
+    test_time = end_test - start_test
+    exec_time = end - start
+    print(f"Data loading time: {data_loading_time:.3f} \n",
+          f"Training time: {train_time:.3f} \n",
+          f"Inference time: {test_time:.3f} \n",
+          f"Total time: {exec_time:.3f} \n")
       
-    
