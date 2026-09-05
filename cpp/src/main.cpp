@@ -17,6 +17,7 @@
 #include <numeric>
 #include <random>
 #include <vector>
+#include <chrono>
 
 class NeuralNetwork : public Module{
     private:
@@ -95,24 +96,26 @@ void test(Dataloader& dataloader, NeuralNetwork& model, CrossEntropyLoss& loss_f
             n_samples += 1;
     }
 }
-    float accuracy = static_cast<float>(correct) / static_cast<float>(n_samples);
-    float avg_loss = running_loss / n_samples;
+    // float accuracy = static_cast<float>(correct) / static_cast<float>(n_samples);
+    // float avg_loss = running_loss / n_samples;
 
-    std::cout<<std::fixed<<std::setprecision(6)<<"Test error: \n accuracy: "<<std::setprecision(1)<<accuracy * 100.0<<"%\n"<<" average loss: "<<std::setprecision(6)<<avg_loss<<"\n";
+    // std::cout<<std::fixed<<std::setprecision(6)<<"Test error: \n accuracy: "<<std::setprecision(1)<<accuracy * 100.0<<"%\n"<<" average loss: "<<std::setprecision(6)<<avg_loss<<"\n";
 }
 
-void train_new_mnist_model(){
-    std::cout<<"Loading dataset..."<<std::endl;
-
+double train_new_mnist_model(){
+    // std::cout<<"Loading dataset..."<<std::endl;
+    auto start_data = std::chrono::high_resolution_clock::now();
     // to train the model on mnist dataset
     MNIST mnist_train = MNIST("data/MNIST/raw/train-images-idx3-ubyte", "data/MNIST/raw/train-labels-idx1-ubyte");
     MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
 
-    std::cout<<"Dataset loaded!"<<std::endl;
+    // std::cout<<"Dataset loaded!"<<std::endl;
 
     int batch_size = 10;
     Dataloader train_dataloader(&mnist_train, batch_size);
     Dataloader test_dataloader(&mnist_test, batch_size);
+
+    auto end_data = std::chrono::high_resolution_clock::now();
 
     NeuralNetwork model;
     CrossEntropyLoss loss_fxn;
@@ -122,16 +125,18 @@ void train_new_mnist_model(){
     // training loop
     int n_epochs = 1;
     for(int epoch = 0; epoch < n_epochs; epoch++){
-        std::cout<<"[Epoch "<<epoch<<"/"<<n_epochs<<"] Training..."<<std::endl;
+        // std::cout<<"[Epoch "<<epoch<<"/"<<n_epochs<<"] Training..."<<std::endl;
         train(train_dataloader, model, loss_fxn, optimizer);
-        std::cout<<"[Epoch "<<epoch<<"/"<<n_epochs<<"] Testing..."<<std::endl;
-        test(test_dataloader, model, loss_fxn);
+        // std::cout<<"[Epoch "<<epoch<<"/"<<n_epochs<<"] Testing..."<<std::endl;
+        // test(test_dataloader, model, loss_fxn);
     }
-
+    double data_time = std::chrono::duration<double>(end_data - start_data).count();
     auto state_dict = model.state_dict();
 
     // to save the mnist model
     save(state_dict, "model/mnist.nn");
+
+    return data_time;
 }
 
 void train_new_fashion_mnist_model(){
@@ -182,7 +187,7 @@ void inference_on_saved_mnist_model(){
     // loading the mnist dataset
     MNIST mnist_test = MNIST("data/MNIST/raw/t10k-images-idx3-ubyte", "data/MNIST/raw/t10k-labels-idx1-ubyte");
 
-    int n_samples = 10;
+    int n_samples = mnist_test.get_length();//10;
     int correct_prediction = 0;
 
     std::vector<int> all_indices(mnist_test.get_length());
@@ -193,18 +198,18 @@ void inference_on_saved_mnist_model(){
     std::vector<int> indices(all_indices.begin(), all_indices.begin() + n_samples);
 
     for(int i = 0; i < n_samples; i++){
-        std::cout<<"Sample "<<i+1<<" of "<<n_samples<<std::endl;
+        // std::cout<<"Sample "<<i+1<<" of "<<n_samples<<std::endl;
         std::pair<int, std::shared_ptr<Tensor>> sample_image = mnist_test.get_item(indices[i]);
         // visualize_image(sample_image.second);
         auto output = model(sample_image.second);
         int predicted_class = output -> argmax();
-        std::cout<<"Predicted class: "<<mnist_test.label_to_class(predicted_class)<<std::endl;
-        std::cout<<"Actual class: "<<mnist_test.label_to_class(sample_image.first)<<std::endl;
+        // std::cout<<"Predicted class: "<<mnist_test.label_to_class(predicted_class)<<std::endl;
+        // std::cout<<"Actual class: "<<mnist_test.label_to_class(sample_image.first)<<std::endl;
         (mnist_test.label_to_class(predicted_class) == mnist_test.label_to_class(sample_image.first)) ? correct_prediction++ : correct_prediction;
-        std::cout<<"---------------------------------------------------------------"<<std::endl;
+        // std::cout<<"---------------------------------------------------------------"<<std::endl;
     }
-    std::cout<<"Correct/Total responses: "<<correct_prediction<<"/"<<n_samples<<std::endl;
-    std::cout<<"Percentage of correct responses: "<<(correct_prediction/(double)n_samples)*100<<"%"<<std::endl;
+    // std::cout<<"Correct/Total responses: "<<correct_prediction<<"/"<<n_samples<<std::endl;
+    // std::cout<<"Percentage of correct responses: "<<(correct_prediction/(double)n_samples)*100<<"%"<<std::endl;
 }
 
 void inference_on_saved_fashion_mnist_model(){
@@ -248,18 +253,31 @@ void inference_on_saved_fashion_mnist_model(){
 }
 
 int main(){
-
+    auto start_total = std::chrono::high_resolution_clock::now();
     // for MNIST model
     // to train the mnist model
-    train_new_mnist_model();
+
+    auto start_train = std::chrono::high_resolution_clock::now();
+    auto time = train_new_mnist_model();
+    auto end_train = std::chrono::high_resolution_clock::now();
 
     // to run inference on the mnist model
-    // inference_on_saved_mnist_model();
+    auto start_test = std::chrono::high_resolution_clock::now();
+    inference_on_saved_mnist_model();
+    auto end_test = std::chrono::high_resolution_clock::now();
 
+    auto end_total = std::chrono::high_resolution_clock::now();
     // for Fashion MNIST model
     // to train the fashion mnist model
     // train_new_fashion_mnist_model();
 
     // to run inference on the fashion mnist model
     // inference_on_saved_fashion_mnist_model();
+    auto train_time = std::chrono::duration<double>(end_train - start_train).count();
+    auto test_time = std::chrono::duration<double>(end_test - start_test).count();
+    auto exec_time = std::chrono::duration<double>(end_total - start_total).count();
+    std::cout<<"Data loading time: "<<time<<std::endl;
+    std::cout<<"Training time: "<<train_time<<std::endl;
+    std::cout<<"Inference time: "<<test_time<<std::endl;
+    std::cout<<"Total time: "<<exec_time<<std::endl;
 }
